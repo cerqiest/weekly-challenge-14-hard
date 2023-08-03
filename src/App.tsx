@@ -1,40 +1,73 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import "./App.css";
+import { useEffect, useState } from "react";
+import ActionButton from "./components/Button";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [realMS, setRealMS] = useState(0);
+  const [displayedMS, setDisplayedMS] = useState(0);
+  const [stopwatchRunning, setStopwatchRunning] = useState(false);
+  const [parsedTime, setParsedTime] = useState("00:00.000");
+  const [laps, setLaps] = useState<number[]>([]);
+
+  // Initialize timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRealMS((prev) => prev + 1);
+    }, 1);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update displayed time if the stopwatch is running
+  useEffect(() => {
+    if (stopwatchRunning) {
+      setDisplayedMS((prev) => prev + 1);
+    }
+  }, [realMS]);
+
+  // Parse time function
+  const parseTime = (ms: number) => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms - minutes * 60000) / 1000);
+    const milliseconds = ms - minutes * 60000 - seconds * 1000;
+
+    return `${minutes < 10 ? "0" + minutes : minutes}:${seconds < 10 ? "0" + seconds : seconds
+      }.${milliseconds}`;
+  }
+
+  useEffect(() => {
+    setParsedTime(parseTime(displayedMS));
+  }, [displayedMS]);
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://reactjs.org" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-      </div>
-      <h1>React + Vite</h1>
-      <h2>On CodeSandbox!</h2>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR.
-        </p>
+    <>
+      <h1 className="text-center text-5xl font-bold mt-12">Stopwatch</h1>
+      <span className="text-9xl font-light flex justify-center mb-6">{parsedTime}</span>
 
-        <p>
-          Tip: you can use the inspector button next to address bar to click on
-          components in the preview and open the code in the editor!
-        </p>
+      <div className="flex flex-row gap-6 justify-center">
+        <ActionButton action={() => setStopwatchRunning((prev) => !prev)} color={stopwatchRunning ? `bg-red-500` : `bg-green-500`}>{stopwatchRunning ? "Stop" : "Start"}</ActionButton>
+        <ActionButton action={() => {
+          setDisplayedMS(0);
+          setStopwatchRunning(false);
+        }} disabled={stopwatchRunning} color="bg-red-500">Reset</ActionButton>
+        <ActionButton action={() => setLaps((prev) => [...prev, displayedMS])} color="bg-blue-500">Lap</ActionButton>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  );
+
+      <hr className="my-6"></hr>
+
+      <div className="mx-12">
+        <span className={`text-2xl text-gray-500 italic font-light ${laps.length > 0 ? `hidden` : ``}`}>It looks like you don't have any laps. Get to stepping!</span>
+        <ol className="list-decimal">
+          {laps.map((lap, index) => (
+            <li key={index} className="text-2xl"><button onClick={() => setLaps((prev) => prev.filter((_, i) => i !== index))} className="bg-red-500 text-white p-3 rounded-lg shadow-lg mb-5">X</button> {parseTime(lap)}</li>
+          ))}
+        </ol>
+      </div>
+
+      <hr className="my-6"></hr>
+
+      <span className="text-2xl text-gray-500 italic font-light flex justify-center">Made by Cerqiest for The Coding Empire's fourtneeth weekly challenge (hard).</span>
+    </>
+  )
 }
 
 export default App;
