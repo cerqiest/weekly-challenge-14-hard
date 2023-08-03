@@ -11,8 +11,8 @@ function App() {
   // Initialize timer
   useEffect(() => {
     const interval = setInterval(() => {
-      setRealMS((prev) => prev + 1);
-    }, 1);
+      setRealMS((prev) => prev + 10);
+    }, 10);
 
     return () => clearInterval(interval);
   }, []);
@@ -20,7 +20,7 @@ function App() {
   // Update displayed time if the stopwatch is running
   useEffect(() => {
     if (stopwatchRunning) {
-      setDisplayedMS((prev) => prev + 1);
+      setDisplayedMS((prev) => prev + 10);
     }
   }, [realMS]);
 
